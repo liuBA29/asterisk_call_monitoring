@@ -1,3 +1,11 @@
+"""
+Автор: Liubov Kovaleva @liuBA29
+Версия: 1.0.0(в разработке)
+Дата: 17.04.2025
+Лицензия: MIT
+Описание: Программа для мониторинга звонков через Asterisk.
+"""
+
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
 import paramiko
@@ -20,16 +28,18 @@ class CallingNumber:
         self.output_box = output_box
         self.status_label = status_label
         self.client = None
+        self.all_calls = []
 
     def connect(self):
         try:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.client.connect(self.host, port=self.port, username=self.username, password=self.password)
-            self.status_label.config(text="Подключение к Asterisk: ✅", fg="green")
+            self.status_label.config(text=f"Подключение к Asterisk: ✅ в {time.strftime('%H:%M')} {time.strftime('%d.%m.%Y')}г.", fg="green")
         except Exception as e:
             self.status_label.config(text="Подключение к Asterisk: ❌", fg="red")
             self.output_box.insert(tk.END, f"[Ошибка подключения] {str(e)}\n", "error")
+
 
 
 
@@ -43,6 +53,7 @@ class CallingNumber:
             return
 
         try:
+
             stdin, stdout, stderr = self.client.exec_command("asterisk -rx 'core show channels verbose'")
             output = stdout.read().decode('utf-8')
             lines = output.splitlines()
@@ -50,11 +61,18 @@ class CallingNumber:
             #
             self.output_box.delete(1.0, tk.END)
 
+            # вывод звонков- доработать
+            # for idx, call in enumerate(self.all_calls, start=1):
+            #     number = call.get("number", "unknown")
+            #     status = call.get("status", "Unknown")
+            #     duration = call.get("duration", "0:00")
+            #     self.output_box.insert(tk.END, f"📞 {idx} call from {number} — {duration} ({status})\n", "call")
+
             if not lines or len(lines) <= 2:
                 self.output_box.insert(tk.END, "Нет активных звонков.\n", "info")
                 return
 
-            self.output_box.insert(tk.END, f"Обновление: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n", "timestamp")
+            self.output_box.insert(tk.END, f"Обновление: {time.strftime('%d-%m-%Y %H:%M:%S')}\n\n", "timestamp")
             active_calls = 0
             for line in lines[1:-1]:
                 part = line.split()
@@ -83,12 +101,15 @@ class CallingNumber:
                         active_calls += 1
                         self.output_box.insert(tk.END, f"📞 {active_calls} call from {number} — {duration} ({status})\n",
                                                "call")
+                        self.all_calls.append({"number": number, "status": status, "duration": duration})
+
                     else:
                         # Если номер не найден, показываем сообщение
                         active_calls += 1
                         self.output_box.insert(tk.END,
                                                f"📞 {active_calls} call from unknown number — {part[-1]} ({status})\n",
                                                "call")
+                        self.all_calls.append({"number": "unknown", "status": status, "duration": part[-1]})
 
                 else:
                     # Если строка не содержит достаточно информации для звонка, просто игнорируем ее
