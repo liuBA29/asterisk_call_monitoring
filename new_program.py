@@ -31,6 +31,8 @@ class CallingNumber:
             self.status_label.config(text="Подключение к Asterisk: ❌", fg="red")
             self.output_box.insert(tk.END, f"[Ошибка подключения] {str(e)}\n", "error")
 
+
+
     def get_active_calls(self):
         if not self.client:
             self.output_box.insert(tk.END, "[!] Нет активного подключения к серверу.\n", "warning")
@@ -41,7 +43,8 @@ class CallingNumber:
             output = stdout.read().decode('utf-8')
             lines = output.splitlines()
 
-            # self.output_box.delete(1.0, tk.END)
+            #
+            self.output_box.delete(1.0, tk.END)
 
             if not lines or len(lines) <= 2:
                 self.output_box.insert(tk.END, "Нет активных звонков.\n", "info")
@@ -134,9 +137,49 @@ def start_gui():
     )
     status_label.pack()
 
+
+
     def get_current_status():
         if caller and caller.client:
+            
+            # Визуально сделать кнопку btn2 "нажатой"
+            btn1.config(relief=tk.SUNKEN, bg="#d0d0d0")
+
+            # Остальные кнопки – "неактивные"
+
+            btn2.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+            btn3.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+            btn4.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+
             caller.get_active_calls()
+
+    def get_answered_calls():
+        #output_box.delete(1.0, tk.END)
+        output_box.insert(tk.END, "📗 Здесь будут **отвеченные** звонки\n", "info")
+        output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
+        # Визуально сделать кнопку btn2 "нажатой"
+        btn3.config(relief=tk.SUNKEN, bg="#d0d0d0")
+
+        # Остальные кнопки – "неактивные"
+
+        btn1.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+        btn2.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+        btn4.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+
+
+    def get_missed__calls():
+        output_box.delete(1.0, tk.END)
+        output_box.insert(tk.END, "📕 Здесь будут **пропущенные** звонки\n", "info")
+        output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
+
+        # Визуально сделать кнопку btn2 "нажатой"
+        btn2.config(relief=tk.SUNKEN, bg="#d0d0d0")
+
+        # Остальные кнопки – "неактивные"
+
+        btn1.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+        btn3.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
+        btn4.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
 
     # Панель с дополнительными кнопками (до окна звонков)
     extra_button_frame = tk.Frame(root, bg="#FAF3E0")
@@ -145,10 +188,10 @@ def start_gui():
     btn1 = tk.Button(extra_button_frame, text="Текущее состояние", width=20, font=("Helvetica", 10), command=get_current_status)
     btn1.pack(side=tk.LEFT, padx=5)
 
-    btn2 = tk.Button(extra_button_frame, text="Пропущенные звонки", width=20, font=("Helvetica", 10))
+    btn2 = tk.Button(extra_button_frame, text="Пропущенные звонки", width=20, font=("Helvetica", 10), command=get_missed__calls)
     btn2.pack(side=tk.LEFT, padx=5)
 
-    btn3 = tk.Button(extra_button_frame, text="Отвеченные звонки", width=20, font=("Helvetica", 10))
+    btn3 = tk.Button(extra_button_frame, text="Отвеченные звонки", width=20, font=("Helvetica", 10), command=get_answered_calls)
     btn3.pack(side=tk.LEFT, padx=5)
 
     btn4 = tk.Button(extra_button_frame, text="4 кнопка", width=20, font=("Helvetica", 10))
