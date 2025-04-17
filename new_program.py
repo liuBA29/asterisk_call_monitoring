@@ -34,6 +34,10 @@ class CallingNumber:
 
 
     def get_active_calls(self):
+        global current_view
+        if current_view != "current":
+            return  # Если текущий вид не "current", не выводим информацию
+
         if not self.client:
             self.output_box.insert(tk.END, "[!] Нет активного подключения к серверу.\n", "warning")
             return
@@ -140,8 +144,10 @@ def start_gui():
 
 
     def get_current_status():
+        global current_view
+        current_view = "current"
         if caller and caller.client:
-            
+
             # Визуально сделать кнопку btn2 "нажатой"
             btn1.config(relief=tk.SUNKEN, bg="#d0d0d0")
 
@@ -154,7 +160,9 @@ def start_gui():
             caller.get_active_calls()
 
     def get_answered_calls():
-        #output_box.delete(1.0, tk.END)
+        global current_view
+        current_view = "answered"
+        output_box.delete(1.0, tk.END)
         output_box.insert(tk.END, "📗 Здесь будут **отвеченные** звонки\n", "info")
         output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
         # Визуально сделать кнопку btn2 "нажатой"
@@ -168,6 +176,8 @@ def start_gui():
 
 
     def get_missed__calls():
+        global current_view
+        current_view = "missed"
         output_box.delete(1.0, tk.END)
         output_box.insert(tk.END, "📕 Здесь будут **пропущенные** звонки\n", "info")
         output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
