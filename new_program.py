@@ -134,21 +134,29 @@ def start_gui():
     )
     status_label.pack()
 
+    def get_current_status():
+        if caller and caller.client:
+            caller.get_active_calls()
+
     # Панель с дополнительными кнопками (до окна звонков)
     extra_button_frame = tk.Frame(root, bg="#FAF3E0")
     extra_button_frame.pack(pady=5)
 
-    btn1 = tk.Button(extra_button_frame, text="Текущее состояние", width=20, font=("Helvetica", 10))
+    btn1 = tk.Button(extra_button_frame, text="Текущее состояние", width=20, font=("Helvetica", 10), command=get_current_status)
     btn1.pack(side=tk.LEFT, padx=5)
 
-    btn2 = tk.Button(extra_button_frame, text="1 кнопка", width=20, font=("Helvetica", 10))
+    btn2 = tk.Button(extra_button_frame, text="Пропущенные звонки", width=20, font=("Helvetica", 10))
     btn2.pack(side=tk.LEFT, padx=5)
 
-    btn3 = tk.Button(extra_button_frame, text="3 кнопка", width=20, font=("Helvetica", 10))
+    btn3 = tk.Button(extra_button_frame, text="Отвеченные звонки", width=20, font=("Helvetica", 10))
     btn3.pack(side=tk.LEFT, padx=5)
 
     btn4 = tk.Button(extra_button_frame, text="4 кнопка", width=20, font=("Helvetica", 10))
     btn4.pack(side=tk.LEFT, padx=5)
+
+    action_buttons = [btn1, btn2, btn3, btn4]
+    for btn in action_buttons:
+        btn.config(state=tk.DISABLED)
 
 
     # Окно вывода
@@ -211,10 +219,15 @@ def start_gui():
     button_frame = tk.Frame(root, bg="#FAF3E0")
     button_frame.pack(pady=10)
 
+
+
+
     def run_connection():
         host = host_entry.get()
         username = username_entry.get()
         password = password_entry.get()
+        global caller
+        caller = CallingNumber(host, 22, username, password, output_box, status_label)
 
         if not all([host, username, password]):
             messagebox.showwarning("Ошибка", "Все поля должны быть заполнены.")
@@ -231,6 +244,12 @@ def start_gui():
 
         if caller.client:
             connect_button.config(state=tk.DISABLED)
+            # Активируем кнопки
+            for btn in action_buttons:
+                btn.config(state=tk.NORMAL)
+
+            # Автоматически запускаем "Текущее состояние"
+            btn1.invoke()
 
         def periodic_check():
             while True:
