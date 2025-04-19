@@ -1,6 +1,8 @@
 # Виртуальное окружение
 venv/
 env/
+dist/
+build/
 .venv/
 
 # Python
@@ -10,7 +12,8 @@ __pycache__/
 *.pyd
 *.pyc
 *.p~$
-
+*.spec
+*.iss
 # Логи
 *.log
 

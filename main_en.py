@@ -1,9 +1,29 @@
 """
-Автор: Liubov Kovaleva @liuBA29
-Версия: 1.0.0(в разработке)
-Дата: 17.04.2025
-Лицензия: MIT
-Описание: Программа для мониторинга звонков через Asterisk.
+Author: Liubov Kovaleva @liuBA29
+Version: 1.0.0 (in development)
+Date: 17.04.2025
+License: MIT
+Description: Program for call monitoring through Asterisk.
+
+MIT License
+
+Copyright (c) 2025 Liubov Kovaleva [@liuBA29]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the “Software”), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import tkinter as tk
@@ -15,7 +35,7 @@ import os
 import json
 from pathlib import Path
 
-# Путь к файлу конфигурации (AppData\Roaming\MyApp\config.json)
+# Path to the configuration file (AppData\Roaming\MyApp\config.json)
 CONFIG_FILE = Path(os.getenv("APPDATA")) / "MyApp" / "config.json"
 CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -35,10 +55,10 @@ class CallingNumber:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.client.connect(self.host, port=self.port, username=self.username, password=self.password)
-            self.status_label.config(text=f"Подключение к Asterisk: ✅ в {time.strftime('%H:%M')} {time.strftime('%d.%m.%Y')}г.", fg="green")
+            self.status_label.config(text=f"Connection to Asterisk: ✅ at {time.strftime('%H:%M')} {time.strftime('%d.%m.%Y')}", fg="green")
         except Exception as e:
-            self.status_label.config(text="Подключение к Asterisk: ❌", fg="red")
-            self.output_box.insert(tk.END, f"[Ошибка подключения] {str(e)}\n", "error")
+            self.status_label.config(text="Connection to Asterisk: ❌", fg="red")
+            self.output_box.insert(tk.END, f"[Connection Error] {str(e)}\n", "error")
 
 
 
@@ -46,10 +66,10 @@ class CallingNumber:
     def get_active_calls(self):
         global current_view
         if current_view != "current":
-            return  # Если текущий вид не "current", не выводим информацию
+            return  #  Do not display information if the current view is not "current"
 
         if not self.client:
-            self.output_box.insert(tk.END, "[!] Нет активного подключения к серверу.\n", "warning")
+            self.output_box.insert(tk.END, "[!] No active connection to the server.\n", "warning")
             return
 
         try:
@@ -61,7 +81,7 @@ class CallingNumber:
             #
             self.output_box.delete(1.0, tk.END)
 
-            # вывод звонков- доработать
+            #
             # for idx, call in enumerate(self.all_calls, start=1):
             #     number = call.get("number", "unknown")
             #     status = call.get("status", "Unknown")
@@ -69,24 +89,24 @@ class CallingNumber:
             #     self.output_box.insert(tk.END, f"📞 {idx} call from {number} — {duration} ({status})\n", "call")
 
             if not lines or len(lines) <= 2:
-                self.output_box.insert(tk.END, "Нет активных звонков.\n", "info")
+                self.output_box.insert(tk.END, "No active calls.\n", "info")
                 return
 
-            self.output_box.insert(tk.END, f"Обновление: {time.strftime('%d-%m-%Y %H:%M:%S')}\n\n", "timestamp")
+            self.output_box.insert(tk.END, f"Update: {time.strftime('%d-%m-%Y %H:%M:%S')}\n\n", "timestamp")
             active_calls = 0
             for line in lines[1:-1]:
                 part = line.split()
 
                 if len(part) > 7:
-                    # Попробуем извлечь номер телефона
+                    # Attempt to extract the phone number
                     number = None
                     for word in part:
-                        if word.isdigit() and len(word) >= 7:  # предполагаем, что это номер телефона
+                        if word.isdigit() and len(word) >= 7:  # Assuming this is a phone number
                             number = word
                             break
 
-                    # Извлекаем статус звонка
-                    status = "Unknown"  # Статус по умолчанию
+                    # Extract the call status
+                    status = "Unknown"
                     if "Ringing" in line:
                         status = "Ringing"
                     elif "Up" in line:
@@ -97,14 +117,14 @@ class CallingNumber:
                         status = "Setup"
 
                     if number:
-                        duration = part[-1]  # Продолжительность звонка (последний элемент)
+                        duration = part[-1]  # Call duration (last element)
                         active_calls += 1
                         self.output_box.insert(tk.END, f"📞 {active_calls} call from {number} — {duration} ({status})\n",
                                                "call")
                         self.all_calls.append({"number": number, "status": status, "duration": duration})
 
                     else:
-                        # Если номер не найден, показываем сообщение
+                        # If no number found, display message
                         active_calls += 1
                         self.output_box.insert(tk.END,
                                                f"📞 {active_calls} call from unknown number — {part[-1]} ({status})\n",
@@ -112,16 +132,16 @@ class CallingNumber:
                         self.all_calls.append({"number": "unknown", "status": status, "duration": part[-1]})
 
                 else:
-                    # Если строка не содержит достаточно информации для звонка, просто игнорируем ее
+                    # Ignore lines that do not contain sufficient information for a call
                     continue
 
             if active_calls == 0:
-                self.output_box.insert(tk.END, "Нет активных звонков.\n", "info")
+                self.output_box.insert(tk.END, "No active calls.\n", "info")
 
             self.output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
 
         except Exception as e:
-            self.output_box.insert(tk.END, f"[Ошибка выполнения команды] {str(e)}\n", "error")
+            self.output_box.insert(tk.END, f"[Command Execution Error] {str(e)}\n", "error")
 
 
 def load_config():
@@ -138,25 +158,25 @@ def save_config(data):
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f)
     except Exception as e:
-        messagebox.showerror("Ошибка", f"Не удалось сохранить настройки:\n{e}")
+        messagebox.showerror("Error", f"Could not save settings:\n{e}")
 
 def start_gui():
     root = tk.Tk()
-    root.title("Мониторинг звонков")
+    root.title("Call Monitoring")
     root.geometry("750x620")
     root.configure(bg="#FAF3E0")
 
     # Заголовок
     title_label = tk.Label(
-        root, text="Мониторинг активных звонков",
+        root, text="Active Call Monitoring",
         font=("Helvetica", 18, "bold"),
         bg="#FAF3E0", fg="#8C4A27", pady=15
     )
     title_label.pack()
 
-    # Статус подключения
+    # Connection status
     status_label = tk.Label(
-        root, text="Подключение к Asterisk: ➖",
+        root, text="Connection to Asterisk: ➖",
         font=("Helvetica", 12),
         bg="#FAF3E0", fg="gray"
     )
@@ -169,10 +189,10 @@ def start_gui():
         current_view = "current"
         if caller and caller.client:
 
-            # Визуально сделать кнопку btn2 "нажатой"
+            #
             btn1.config(relief=tk.SUNKEN, bg="#d0d0d0")
 
-            # Остальные кнопки – "неактивные"
+            #
 
             btn2.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
             btn3.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
@@ -184,12 +204,12 @@ def start_gui():
         global current_view
         current_view = "answered"
         output_box.delete(1.0, tk.END)
-        output_box.insert(tk.END, "📗 Здесь будут **отвеченные** звонки\n", "info")
+        output_box.insert(tk.END, "📗 These will be **answered** calls\n", "info")
         output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
-        # Визуально сделать кнопку btn2 "нажатой"
+        #
         btn3.config(relief=tk.SUNKEN, bg="#d0d0d0")
 
-        # Остальные кнопки – "неактивные"
+        #
 
         btn1.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
         btn2.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
@@ -200,32 +220,32 @@ def start_gui():
         global current_view
         current_view = "missed"
         output_box.delete(1.0, tk.END)
-        output_box.insert(tk.END, "📕 Здесь будут **пропущенные** звонки\n", "info")
+        output_box.insert(tk.END, "📕 These will be **missed** calls\n", "info")
         output_box.insert(tk.END, "\n" + "-" * 70 + "\n", "separator")
 
-        # Визуально сделать кнопку btn2 "нажатой"
+        #
         btn2.config(relief=tk.SUNKEN, bg="#d0d0d0")
 
-        # Остальные кнопки – "неактивные"
+        #
 
         btn1.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
         btn3.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
         btn4.config(relief=tk.RAISED, state=tk.NORMAL, bg="SystemButtonFace")
 
-    # Панель с дополнительными кнопками (до окна звонков)
+    #
     extra_button_frame = tk.Frame(root, bg="#FAF3E0")
     extra_button_frame.pack(pady=5)
 
-    btn1 = tk.Button(extra_button_frame, text="Текущее состояние", width=20, font=("Helvetica", 10), command=get_current_status)
+    btn1 = tk.Button(extra_button_frame, text="Current Status", width=20, font=("Helvetica", 10), command=get_current_status)
     btn1.pack(side=tk.LEFT, padx=5)
 
-    btn2 = tk.Button(extra_button_frame, text="Пропущенные звонки", width=20, font=("Helvetica", 10), command=get_missed__calls)
+    btn2 = tk.Button(extra_button_frame, text="Missed Calls", width=20, font=("Helvetica", 10), command=get_missed__calls)
     btn2.pack(side=tk.LEFT, padx=5)
 
-    btn3 = tk.Button(extra_button_frame, text="Отвеченные звонки", width=20, font=("Helvetica", 10), command=get_answered_calls)
+    btn3 = tk.Button(extra_button_frame, text="Answered Calls", width=20, font=("Helvetica", 10), command=get_answered_calls)
     btn3.pack(side=tk.LEFT, padx=5)
 
-    btn4 = tk.Button(extra_button_frame, text="4 кнопка", width=20, font=("Helvetica", 10))
+    btn4 = tk.Button(extra_button_frame, text="Button 4", width=20, font=("Helvetica", 10))
     btn4.pack(side=tk.LEFT, padx=5)
 
     action_buttons = [btn1, btn2, btn3, btn4]
@@ -233,7 +253,7 @@ def start_gui():
         btn.config(state=tk.DISABLED)
 
 
-    # Окно вывода
+    #
     output_box = scrolledtext.ScrolledText(
         root, width=90, height=12,
         font=("Courier New", 11),
@@ -248,14 +268,13 @@ def start_gui():
     output_box.tag_config("call", foreground="#003366")
     output_box.pack(pady=10, padx=15)
 
-    # Загрузка данных из конфигурации
+    #
     config = load_config()
     host_value = config.get("host", "")
     username_value = config.get("username", "")
     password_value = config.get("password", "")
 
-    # Поля ввода для данных
-    # Поля ввода для данных
+    #
     host_frame = tk.Frame(root, bg="#FAF3E0")
     host_frame.pack(pady=5)
 
@@ -270,7 +289,7 @@ def start_gui():
     username_frame = tk.Frame(root, bg="#FAF3E0")
     username_frame.pack(pady=5)
 
-    username_label = tk.Label(username_frame, text="Имя пользователя:", width=15, anchor="e")
+    username_label = tk.Label(username_frame, text="Username:", width=15, anchor="e")
     username_label.pack(side=tk.LEFT)
 
     username_entry = tk.Entry(username_frame, font=("Helvetica", 12), width=30)
@@ -282,14 +301,14 @@ def start_gui():
     password_frame = tk.Frame(root, bg="#FAF3E0")
     password_frame.pack(pady=5)
 
-    password_label = tk.Label(password_frame, text="Пароль:", width=15, anchor="e")
+    password_label = tk.Label(password_frame, text="Password:", width=15, anchor="e")
     password_label.pack(side=tk.LEFT)
 
     password_entry = tk.Entry(password_frame, font=("Helvetica", 12), show="*", width=30)
     password_entry.insert(0, password_value)
     password_entry.pack(side=tk.LEFT, padx=5)
 
-    # Кнопки
+    # buttons
     button_frame = tk.Frame(root, bg="#FAF3E0")
     button_frame.pack(pady=10)
 
@@ -304,11 +323,11 @@ def start_gui():
         caller = CallingNumber(host, 22, username, password, output_box, status_label)
 
         if not all([host, username, password]):
-            messagebox.showwarning("Ошибка", "Все поля должны быть заполнены.")
+            messagebox.showwarning("Ошибка", "All fields must be filled in.")
             return
 
         # Спросим, хочет ли пользователь сохранить данные
-        if messagebox.askyesno("Сохранить?", "Сохранить введённые данные для следующего запуска? Пароль будет сохранен в открытом виде"):
+        if messagebox.askyesno("Save?", "Would you like to save the entered data for the next session? The password will be stored in plain text."):
             save_config({"host": host, "username": username, "password": password})
         else:
             save_config({"host": host, "username": username})  # пароль не сохраняем
@@ -318,11 +337,11 @@ def start_gui():
 
         if caller.client:
             connect_button.config(state=tk.DISABLED)
-            # Активируем кнопки
+            #
             for btn in action_buttons:
                 btn.config(state=tk.NORMAL)
 
-            # Автоматически запускаем "Текущее состояние"
+            #
             btn1.invoke()
 
         def periodic_check():
@@ -333,14 +352,14 @@ def start_gui():
         threading.Thread(target=periodic_check, daemon=True).start()
 
     connect_button = tk.Button(
-        button_frame, text="🔌 Подключиться",
+        button_frame, text="🔌 Connect",
         font=("Helvetica", 12, "bold"), command=run_connection,
         bg="#F5A623", fg="white", relief="raised", bd=2, width=18
     )
     connect_button.pack(side=tk.LEFT, padx=20)
 
     exit_button = tk.Button(
-        button_frame, text="🚪 Выход",
+        button_frame, text="🚪Exit",
         font=("Helvetica", 12, "bold"), command=root.quit,
         bg="#D9534F", fg="white", relief="raised", bd=2, width=10
     )
